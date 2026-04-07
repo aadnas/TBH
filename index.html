@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Torup Børnehave – PDF Generator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Arial, sans-serif;
+    background: #eef5eb;
+    color: #2b2b2b;
+    min-height: 100vh;
+    padding: 30px 20px;
+  }
+  .container { max-width: 700px; margin: 0 auto; }
+  header {
+    background: #3a6b35;
+    color: white;
+    border-radius: 10px 10px 0 0;
+    padding: 22px 28px 16px;
+    margin-bottom: 0;
+  }
+  header h1 { font-size: 22px; margin-bottom: 4px; }
+  header p  { font-size: 13px; opacity: 0.85; }
+  .stripe { height: 6px; background: #5a8f53; margin-bottom: 24px; border-radius: 0 0 4px 4px; }
+
+  .card {
+    background: white;
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    border: 1px solid #d4e8ce;
+    box-shadow: 0 2px 8px rgba(58,107,53,0.07);
+  }
+  .card h2 {
+    font-size: 15px;
+    color: #3a6b35;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #d4e8ce;
+  }
+  .field-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .field {
+    flex: 1;
+    min-width: 200px;
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: bold;
+    color: #5a8f53;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  input[type="date"], input[type="text"], textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid #d4e8ce;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #2b2b2b;
+    background: #f9faf7;
+    transition: border-color 0.2s;
+  }
+  input[type="date"]:focus, input[type="text"]:focus, textarea:focus {
+    outline: none;
+    border-color: #5a8f53;
+    background: white;
+  }
+  textarea { resize: vertical; min-height: 60px; font-size: 13px; }
+  .hint { font-size: 13px; color: #888; margin-top: 4px; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #3a6b35;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 24px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    width: 100%;
+    justify-content: center;
+    margin-top: 8px;
+  }
+  .btn:hover  { background: #2e5529; }
+  .btn:active { transform: scale(0.98); }
+  .btn.secondary {
+    background: #5a8f53;
+    margin-top: 4px;
+  }
+  .btn.secondary:hover { background: #4a7a44; }
+
+  .status {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+  }
+  .status.ok  { background: #d4e8ce; color: #2e5529; display: block; }
+  .status.err { background: #fde8e8; color: #cc0000; display: block; }
+
+
+  @media (max-width: 600px) {
+    body { padding: 16px 12px; }
+    .container { max-width: 100%; }
+    .field-row { flex-direction: column; gap: 10px; }
+    .field { min-width: unset; }
+    header h1 { font-size: 18px; }
+    .btn { font-size: 15px; padding: 16px; }
+  }
+
+  footer {
+    text-align: center;
+    font-size: 11px;
+    color: #888;
+    margin-top: 10px;
+    padding: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🌿 Torup Børnehave</h1>
+    <p>PDF-generator til Fredagsforælder &amp; Forældrerengøring</p>
+  </header>
+  <div class="stripe"></div>
+
+  <!-- FREDAGSFORÆLDER -->
+  <div class="card">
+    <h2>📋 Fredagsforælder</h2>
+    <div class="field-row">
+      <div class="field">
+        <label>Startdato</label>
+        <input type="date" id="fred_start" value="2026-05-01">
+        <p class="hint">Første dag i perioden (første fredag på eller efter denne dato)</p>
+      </div>
+      <div class="field">
+        <label>Slutdato</label>
+        <input type="date" id="fred_end" value="2027-04-30">
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:14px">
+      <label>Fristmåned (sidste fredag i)</label>
+      <select id="fred_frist_maaned" style="width:100%;padding:12px;border:1.5px solid #d4e8ce;border-radius:6px;font-size:15px;background:#f9faf7;">
+        <option value="1">Januar</option><option value="2">Februar</option>
+        <option value="3">Marts</option><option value="4">April</option>
+        <option value="5" selected>Maj</option><option value="6">Juni</option>
+        <option value="7">Juli</option><option value="8">August</option>
+        <option value="9">September</option><option value="10">Oktober</option>
+        <option value="11">November</option><option value="12">December</option>
+      </select>
+      <p class="hint">Fristen beregnes automatisk til den sidste fredag i denne måned</p>
+    </div>
+    <div class="field" style="margin-top:6px">
+      <label>Pædagogiske dage (op til 4 datoer)</label>
+      <p class="hint">Disse fredager får dobbelt plads med 4 navnelinjer og teksten "Pædagogisk dag"</p>
+      <div class="field-row" style="margin-top:8px;margin-bottom:0">
+        <div class="field"><input type="date" id="paed1"></div>
+        <div class="field"><input type="date" id="paed2"></div>
+      </div>
+      <div class="field-row" style="margin-bottom:0">
+        <div class="field"><input type="date" id="paed3"></div>
+        <div class="field"><input type="date" id="paed4"></div>
+      </div>
+    </div>
+    <div class="field" style="margin-top:6px;margin-bottom:14px">
+      <label>Informationstekster <span style="font-weight:normal;color:#888;font-size:11px">– klik farveknappen for at ændre tekstfarve</span> <span style="font-weight:normal;color:#aaa;font-size:11px">(iOS: tryk og hold)</span></label>
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-top:6px">
+        <input type="color" id="fred_farve1" value="#2b2b2b" title="Tekstfarve"
+          style="width:40px;height:40px;padding:2px;border:1.5px solid #d4e8ce;border-radius:6px;cursor:pointer;flex-shrink:0;margin-top:1px">
+        <textarea id="fred_linje1" style="flex:1;padding:9px 12px;border:1.5px solid #d4e8ce;border-radius:6px;font-size:13px;color:#2b2b2b;background:#f9faf7;resize:vertical;min-height:44px"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-top:6px">
+        <input type="color" id="fred_farve2" value="#2b2b2b" title="Tekstfarve"
+          style="width:40px;height:40px;padding:2px;border:1.5px solid #d4e8ce;border-radius:6px;cursor:pointer;flex-shrink:0;margin-top:1px">
+        <textarea id="fred_linje2" style="flex:1;padding:9px 12px;border:1.5px solid #d4e8ce;border-radius:6px;font-size:13px;color:#2b2b2b;background:#f9faf7;resize:vertical;min-height:44px"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-top:6px">
+        <input type="color" id="fred_farve3" value="#2b2b2b" title="Tekstfarve"
+          style="width:40px;height:40px;padding:2px;border:1.5px solid #d4e8ce;border-radius:6px;cursor:pointer;flex-shrink:0;margin-top:1px">
+        <textarea id="fred_linje3" style="flex:1;padding:9px 12px;border:1.5px solid #d4e8ce;border-radius:6px;font-size:13px;color:#2b2b2b;background:#f9faf7;resize:vertical;min-height:44px"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-top:6px">
+        <input type="color" id="fred_farve4" value="#cc0000" title="Tekstfarve"
+          style="width:40px;height:40px;padding:2px;border:1.5px solid #d4e8ce;border-radius:6px;cursor:pointer;flex-shrink:0;margin-top:1px">
+        <textarea id="fred_linje4" style="flex:1;padding:9px 12px;border:1.5px solid #d4e8ce;border-radius:6px;font-size:13px;color:#2b2b2b;background:#f9faf7;resize:vertical;min-height:44px"></textarea>
+      </div>
+    </div>
+    <button class="btn" onclick="genFredager()">⬇ Hent Fredagsforælder PDF</button>
+    <div class="status" id="fred_status"></div>
+  </div>
+
+  <!-- FORÆLDRERENGØRING -->
+  <div class="card">
+    <h2>🧹 Forældrerengøring</h2>
+    <div class="field-row">
+      <div class="field">
+        <label>Startdato</label>
+        <input type="date" id="rengo_start" value="2026-05-01">
+        <p class="hint">Første dag i perioden (første lørdag på eller efter denne dato)</p>
+      </div>
+      <div class="field">
+        <label>Slutdato</label>
+        <input type="date" id="rengo_end" value="2027-04-30">
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:14px">
+      <label>Fristmåned (sidste fredag i)</label>
+      <select id="rengo_frist_maaned" style="width:100%;padding:12px;border:1.5px solid #d4e8ce;border-radius:6px;font-size:15px;background:#f9faf7;">
+        <option value="1">Januar</option><option value="2">Februar</option>
+        <option value="3">Marts</option><option value="4">April</option>
+        <option value="5" selected>Maj</option><option value="6">Juni</option>
+        <option value="7">Juli</option><option value="8">August</option>
+        <option value="9">September</option><option value="10">Oktober</option>
+        <option value="11">November</option><option value="12">December</option>
+      </select>
+      <p class="hint">Fristen sættes automatisk til den sidste fredag i denne måned i startåret</p>
+    </div>
+    <div class="field" style="margin-top:6px;margin-bottom:14px">
+      <label>Arbejdslørdage (op til 3 datoer)</label>
+      <p class="hint">Disse weekender fremhæves i grønt med teksten "Arbejdslørdag"</p>
+      <div class="field-row" style="margin-top:8px;margin-bottom:0">
+        <div class="field"><input type="date" id="arbejd1"></div>
+        <div class="field"><input type="date" id="arbejd2"></div>
+      </div>
+      <div class="field-row" style="margin-bottom:0">
+        <div class="field"><input type="date" id="arbejd3"></div>
+        <div class="field"></div>
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:14px">
+      <label>Informationstekster <span style="font-weight:normal;color:#888;font-size:11px">– klik farveknappen for at ændre tekstfarve</span> <span style="font-weight:normal;color:#aaa;font-size:11px">(iOS: tryk og hold)</span></label>
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-top:6px">
+        <input type="color" id="rengo_farve1" value="#2b2b2b" title="Tekstfarve"
+          style="width:40px;height:40px;padding:2px;border:1.5px solid #d4e8ce;border-radius:6px;cursor:pointer;flex-shrink:0;margin-top:1px">
+        <textarea id="rengo_linje1" style="flex:1;padding:9px 12px;border:1.5px solid #d4e8ce;border-radius:6px;font-size:13px;color:#2b2b2b;background:#f9faf7;resize:vertical;min-height:44px"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-top:6px">
+        <input type="color" id="rengo_farve2" value="#cc0000" title="Tekstfarve"
+          style="width:40px;height:40px;padding:2px;border:1.5px solid #d4e8ce;border-radius:6px;cursor:pointer;flex-shrink:0;margin-top:1px">
+        <textarea id="rengo_linje2" style="flex:1;padding:9px 12px;border:1.5px solid #d4e8ce;border-radius:6px;font-size:13px;color:#2b2b2b;background:#f9faf7;resize:vertical;min-height:44px"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-top:6px">
+        <input type="color" id="rengo_farve3" value="#cc0000" title="Tekstfarve"
+          style="width:40px;height:40px;padding:2px;border:1.5px solid #d4e8ce;border-radius:6px;cursor:pointer;flex-shrink:0;margin-top:1px">
+        <textarea id="rengo_linje3" style="flex:1;padding:9px 12px;border:1.5px solid #d4e8ce;border-radius:6px;font-size:13px;color:#2b2b2b;background:#f9faf7;resize:vertical;min-height:44px"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-top:6px">
+        <input type="color" id="rengo_farve4" value="#2b2b2b" title="Tekstfarve"
+          style="width:40px;height:40px;padding:2px;border:1.5px solid #d4e8ce;border-radius:6px;cursor:pointer;flex-shrink:0;margin-top:1px">
+        <textarea id="rengo_linje4" style="flex:1;padding:9px 12px;border:1.5px solid #d4e8ce;border-radius:6px;font-size:13px;color:#2b2b2b;background:#f9faf7;resize:vertical;min-height:44px"></textarea>
+      </div>
+    </div>
+    <button class="btn secondary" onclick="genRengoering()">⬇ Hent Forældrerengøring PDF</button>
+    <div class="status" id="rengo_status"></div>
+  </div>
+
+  <footer>Torup Børnehave · Torup Bygade 5, 3390 Hundested · 47 98 70 31</footer>
+</div>
+
+<script>
+const { jsPDF } = window.jspdf;
+
+// ── Colours ──────────────────────────────────────────────────────────────────
+const G_DARK  = [58,107,53];
+const G_MID   = [90,143,83];
+const G_PALE  = [238,245,235];
+const CREAM   = [249,250,247];
+const HATCH_BG= [200,216,197];
+const RED     = RED;
+const WHITE    = WHITE;
+const TEXT_DARK= TEXT_DARK;
+const LOGO_DATA='data:image/png;base64,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';
+
+const MONTHS_FULL = ['','januar','februar','marts','april','maj','juni','juli',
+                     'august','september','oktober','november','december'];
+const MONTHS_ABB  = ['','jan.','feb.','mar.','apr.','maj','jun.','jul.',
+                     'aug.','sep.','okt.','nov.','dec.'];
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function parseDate(str) {
+  const [y,m,d] = str.split('-').map(Number);
+  return new Date(y,m-1,d);
+}
+function addDays(d,n) { const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function isoWeek(d) {
+  const tmp=new Date(d); tmp.setHours(0,0,0,0);
+  tmp.setDate(tmp.getDate()+3-(tmp.getDay()+6)%7);
+  const w=new Date(tmp.getFullYear(),0,4);
+  return 1+Math.round(((tmp-w)/86400000-(3-(w.getDay()+6)%7))/7);
+}
+
+function easter(year) {
+  const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,
+        f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),
+        h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,
+        l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),
+        month=Math.floor((h+l-7*m+114)/31),
+        day=((h+l-7*m+114)%31)+1;
+  return new Date(year,month-1,day);
+}
+
+function getClosedDates(years) {
+  const s=new Set();
+  years.forEach(year=>{
+    const e=easter(year);
+    for(let o=-5;o<=1;o++) s.add(addDays(e,o).toDateString());
+    const asc=addDays(e,39); s.add(asc.toDateString()); s.add(addDays(asc,1).toDateString());
+    const wh=addDays(e,49);  s.add(wh.toDateString());  s.add(addDays(wh,1).toDateString());
+    s.add(new Date(year,0,1).toDateString());
+    [24,25,26,27,28,29,30,31].forEach(d=>s.add(new Date(year,11,d).toDateString()));
+  });
+  return s;
+}
+
+function lastFridayOfMonth(year,month) {
+  let d=new Date(year,month,0); // last day of month
+  while(d.getDay()!==5) d=addDays(d,-1);
+  return d;
+}
+
+
+function hexToRgb(id) {
+  const h=document.getElementById(id).value.replace('#','');
+  return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];
+}
+// ── Draw helpers ─────────────────────────────────────────────────────────────
+function setFill(doc,rgb)   { doc.setFillColor(rgb[0],rgb[1],rgb[2]); }
+function setStroke(doc,rgb) { doc.setDrawColor(rgb[0],rgb[1],rgb[2]); }
+function setTextColor(doc,rgb){ doc.setTextColor(rgb[0],rgb[1],rgb[2]); }
+
+function drawHeader(doc, title, subtitle, pw, ph) {
+  const hh=26, stripe=2;
+  setFill(doc,G_DARK); doc.rect(0,0,pw,hh,'F');
+  setFill(doc,G_MID);  doc.rect(0,hh,pw,stripe,'F');
+  // Logo embedded as base64
+  const lx=12,ly=4,lh=18,lw=lh*(726/172);
+  doc.addImage(LOGO_DATA,'PNG',lx,ly,lw,lh);
+  // Logo: ly=4, lh=18 → center=13, cap-height ca 13mm → baseline ≈ 15
+  // Titel samme visuelle størrelse som logo
+  const tx=lx+lw+6;
+  setTextColor(doc,WHITE);
+  doc.setFont('Helvetica','bold'); doc.setFontSize(24);
+  doc.text(title,tx,15);
+  // Dato lidt lavere end titlen
+  doc.setFont('Helvetica','normal'); doc.setFontSize(8.5);
+  doc.text(subtitle,pw-12,21,{align:'right'});
+}
+
+function drawFooter(doc,pw) {
+  setFill(doc,G_DARK); doc.rect(0,doc.internal.pageSize.height-6,pw,6,'F');
+  setTextColor(doc,WHITE);
+  doc.setFont('Helvetica','normal'); doc.setFontSize(6.5);
+  doc.text('Torup Børnehave · Torup Bygade 5, 3390 Hundested · 47 98 70 31 · post@torupbornehave.dk',
+           pw/2,doc.internal.pageSize.height-2,{align:'center'});
+}
+
+function drawYearSep(doc,cx,ry,cw,label,sh) {
+  setFill(doc,G_DARK); doc.rect(cx,ry,cw,sh,'F');
+  setTextColor(doc,WHITE);
+  doc.setFont('Helvetica','bold'); doc.setFontSize(7.5);
+  doc.text(label,cx+cw/2,ry+sh-1.3,{align:'center'});
+}
+
+function drawHatch(doc,x,y,w,h) {
+  doc.saveGraphicsState();
+  setFill(doc,HATCH_BG); doc.rect(x,y,w,h,'F');
+  doc.setLineWidth(0.4); setStroke(doc,[138,171,133]);
+  const sp=3.5;
+  for(let d=-h;d<w;d+=sp) {
+    const x1=x+d,y1=y,x2=x+d+h,y2=y+h;
+    const cx1=Math.max(x,x1),cy1=x1<x?y+(x-x1):y1;
+    const cx2=Math.min(x+w,x2),cy2=x2>x+w?y2-(x2-(x+w)):y2;
+    if(cx1<cx2) doc.line(cx1,cy1,cx2,cy2);
+  }
+  doc.restoreGraphicsState();
+}
+
+// ── FREDAGSFORÆLDER ───────────────────────────────────────────────────────────
+function genFredager() {
+  const startStr=document.getElementById('fred_start').value;
+  const endStr=document.getElementById('fred_end').value;
+  const st=document.getElementById('fred_status');
+  if(!startStr||!endStr){st.className='status err';st.textContent='Udfyld venligst begge datoer.';return;}
+
+  // Collect pedagogical dates
+  const paedSet=new Set();
+  ['paed1','paed2','paed3','paed4'].forEach(id=>{
+    const v=document.getElementById(id).value;
+    if(v) paedSet.add(parseDate(v).toDateString());
+  });
+
+  let d=parseDate(startStr); const end=parseDate(endStr);
+  while(d.getDay()!==5) d=addDays(d,1);
+  const fridays=[];
+  while(d<=end){ fridays.push(new Date(d)); d=addDays(d,7); }
+  if(!fridays.length){st.className='status err';st.textContent='Ingen fredager fundet i den valgte periode.';return;}
+
+  const closed=getClosedDates([parseDate(startStr).getFullYear(), parseDate(endStr).getFullYear()]);
+
+  // ── Smart column balancing ──────────────────────────────────────────────────
+  // Pæd days count as weight 2, normal days as weight 1.
+  // Distribute greedily so columns are as equal as possible.
+  const nCols=4;
+  const weights=fridays.map(fd=>paedSet.has(fd.toDateString())?2:1);
+  const totalW=weights.reduce((a,b)=>a+b,0);
+  const target=totalW/nCols;
+  const colSplits=[]; // [{start, end}]
+  let curStart=0, curW=0;
+  weights.forEach((w,i)=>{
+    curW+=w;
+    if(curW>=target && colSplits.length<nCols-1){
+      colSplits.push({start:curStart,end:i+1});
+      curStart=i+1; curW=0;
+    }
+  });
+  colSplits.push({start:curStart,end:fridays.length});
+  const maxColW=Math.max(...colSplits.map(({start,end})=>weights.slice(start,end).reduce((a,b)=>a+b,0)));
+
+  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  const pw=297,ph=210,ml=12,mr=12,mt=14,mb=10;
+  const hdrH=26,stripeH=2;
+
+  drawHeader(doc,'Fredagsforælder',
+    `${d2s(fridays[0])} – ${d2s(fridays[fridays.length-1])}`,pw,ph);
+  drawFooter(doc,pw);
+
+  // ── Info block ──────────────────────────────────────────────────────────────
+  const fristMaanedFred=parseInt(document.getElementById('fred_frist_maaned').value);
+  const startYearFred=parseDate(startStr).getFullYear();
+  const fristDateFred=lastFridayOfMonth(startYearFred,fristMaanedFred);
+  const fristFred=`${fristDateFred.getDate()}.${fristDateFred.getMonth()+1}.${fristDateFred.getFullYear()}`;
+
+  const infoY=hdrH+stripeH+3, infoH=27, infoX=ml, lineGapF=5.2;
+  setFill(doc,[240,247,238]); doc.rect(infoX,infoY,pw-ml-mr,infoH,'F');
+  setStroke(doc,G_MID); doc.setLineWidth(0.4); doc.rect(infoX,infoY,pw-ml-mr,infoH,'S');
+  setFill(doc,G_MID); doc.rect(infoX,infoY,1.5,infoH,'F');
+  const txF=infoX+4;
+  let iyF=infoY+5.5;
+  // Linje 1 – sort fed understreget
+  setTextColor(doc,TEXT_DARK); doc.setFont('Helvetica','bold'); doc.setFontSize(8);
+  const fredL1=document.getElementById('fred_linje1').value;
+  const fredL2=document.getElementById('fred_linje2').value;
+  const fredL3=document.getElementById('fred_linje3').value;
+  const fredL4=document.getElementById('fred_linje4').value;
+  const fc1=hexToRgb('fred_farve1'),fc2=hexToRgb('fred_farve2'),fc3=hexToRgb('fred_farve3'),fc4=hexToRgb('fred_farve4');
+  setTextColor(doc,fc1); doc.setFont('Helvetica','bold'); doc.setFontSize(8);
+  doc.text(fredL1,txF,iyF);
+  const l1w=doc.getTextWidth(fredL1);
+  doc.setLineWidth(0.5); setStroke(doc,fc1);
+  doc.line(txF,iyF+0.8,txF+l1w,iyF+0.8);
+  iyF+=lineGapF;
+  setTextColor(doc,fc2); doc.setFontSize(7.5);
+  doc.text(fredL2,txF,iyF);
+  iyF+=4.5;
+  setTextColor(doc,fc3);
+  doc.text(fredL3,txF,iyF);
+  iyF+=lineGapF;
+  setTextColor(doc,fc4); doc.setFont('Helvetica','bold'); doc.setFontSize(7.5);
+  doc.text(`FRIST FOR AT SKRIVE SIG PÅ ER ${fristFred}  ${fredL4}`,txF,iyF);
+  iyF+=4.5;
+  doc.setFont('Helvetica','italic'); doc.setFontSize(7);
+  doc.text('(fristen gælder kun for de "gamle" forældre)',txF+2,iyF);
+
+  const tableTopY=infoY+infoH+2;
+  const usableW=pw-ml-mr, usableH=ph-tableTopY-mb-6;
+  const colGap=4, colW=(usableW-colGap*(nCols-1))/nCols;
+  const dateW=28, nameW=colW-dateW;  // smalere dato, bredere navn
+  const hdrRowH=6.5, yearSepH=5, maxSeps=2;
+  const rowH=(usableH-hdrRowH-maxSeps*yearSepH)/maxColW;
+  const paedRowH=rowH*2;
+  const topY=tableTopY;
+  const G_PAED_BG=[230,242,255];
+
+  colSplits.forEach(({start,end},ci)=>{
+    const cx=ml+ci*(colW+colGap);
+    const colFridays=fridays.slice(start,end);
+
+    // Column header
+    setFill(doc,G_DARK);
+    doc.rect(cx,topY,dateW,hdrRowH,'F');
+    doc.rect(cx+dateW,topY,nameW,hdrRowH,'F');
+    setTextColor(doc,WHITE);
+    doc.setFont('Helvetica','bold'); doc.setFontSize(7.5);
+    doc.text('Dato',cx+2,topY+hdrRowH-2.2);
+    doc.text('Navn',cx+dateW+2,topY+hdrRowH-2.2);
+
+    let curY=topY+hdrRowH;
+    const firstYear=colFridays[0].getFullYear();
+    let midSepDrawn=false;
+    drawYearSep(doc,cx,curY,colW,String(firstYear),yearSepH);
+    curY+=yearSepH;
+
+    colFridays.forEach((fd,ri)=>{
+      if(fd.getFullYear()!==firstYear && !midSepDrawn){
+        drawYearSep(doc,cx,curY,colW,String(fd.getFullYear()),yearSepH);
+        curY+=yearSepH; midSepDrawn=true;
+      }
+      const isClosed=closed.has(fd.toDateString());
+      const isPaed=paedSet.has(fd.toDateString());
+      const thisH=isPaed?paedRowH:rowH;
+      const bg=ri%2===0?G_PALE:WHITE;
+
+      if(isClosed){
+        drawHatch(doc,cx,curY,dateW,thisH);
+        drawHatch(doc,cx+dateW,curY,nameW,thisH);
+      } else if(isPaed){
+        setFill(doc,G_PAED_BG);
+        doc.rect(cx,curY,dateW,thisH,'F');
+        doc.rect(cx+dateW,curY,nameW,thisH,'F');
+      } else {
+        setFill(doc,bg);
+        doc.rect(cx,curY,dateW,thisH,'F');
+        doc.rect(cx+dateW,curY,nameW,thisH,'F');
+      }
+
+      // Dato UDEN årstal, vertikalt centreret
+      setTextColor(doc,isClosed?[150,150,150]:TEXT_DARK);
+      doc.setFont('Helvetica',isClosed?'italic':'normal'); doc.setFontSize(7);
+      doc.text(d2sNoYear(fd),cx+2,curY+thisH/2+2.5);
+
+      if(isPaed){
+        // "Pædagogisk dag" under datoen i dato-feltet
+        doc.setFont('Helvetica','bold'); doc.setFontSize(6.5);
+        setTextColor(doc,[30,80,160]);
+        doc.text('Pædagogisk dag',cx+2,curY+thisH/2+6.5);
+        // 4 navnelinjer jævnt fordelt i navn-feltet
+        const lineH=thisH/4;
+        setStroke(doc,[180,200,230]); doc.setLineWidth(0.2);
+        for(let ln=1;ln<4;ln++)
+          doc.line(cx+dateW+1,curY+ln*lineH,cx+dateW+nameW-1,curY+ln*lineH);
+      }
+
+      setStroke(doc,G_MID); doc.setLineWidth(0.3);
+      doc.rect(cx,curY,dateW,thisH,'S');
+      doc.rect(cx+dateW,curY,nameW,thisH,'S');
+      curY+=thisH;
+    });
+
+    if(!midSepDrawn){ setFill(doc,CREAM); doc.rect(cx,curY,colW,yearSepH,'F'); }
+    setStroke(doc,G_DARK); doc.setLineWidth(0.8);
+    doc.rect(cx,topY,colW,curY-topY+(midSepDrawn?0:yearSepH),'S');
+  });
+
+  // Legend
+  const lt='Lukket';
+  doc.setFont('Helvetica','normal'); doc.setFontSize(6.5);
+  const lw=doc.getTextWidth(lt);
+  const lx=pw-mr-lw-3.5-1.5, ly=ph-mb-3.5+1;
+  drawHatch(doc,lx,ly,3.5,3.5);
+  setStroke(doc,G_MID); doc.setLineWidth(0.3); doc.rect(lx,ly,3.5,3.5,'S');
+  setTextColor(doc,TEXT_DARK);
+  doc.text(lt,lx+5,ly+2.5);
+
+  doc.save('fredagsforelder.pdf');
+  st.className='status ok';
+  st.textContent=`✓ PDF hentet! ${paedSet.size>0?'('+paedSet.size+' pædagogisk dag markeret)':''}`;
+}
+
+// ── FORÆLDRERENGØRING ─────────────────────────────────────────────────────────
+function genRengoering() {
+  const startStr=document.getElementById('rengo_start').value;
+  const endStr=document.getElementById('rengo_end').value;
+  const fristMaaned=parseInt(document.getElementById('rengo_frist_maaned').value);
+  const st=document.getElementById('rengo_status');
+  if(!startStr||!endStr){st.className='status err';st.textContent='Udfyld venligst begge datoer.';return;}
+
+  let d=parseDate(startStr); const end=parseDate(endStr);
+  while(d.getDay()!==6) d=addDays(d,1);
+  const weekends=[];
+  while(d<=end){ weekends.push([new Date(d),addDays(d,1)]); d=addDays(d,7); }
+  if(!weekends.length){st.className='status err';st.textContent='Ingen weekender fundet.';return;}
+
+  // Collect arbejdslørdage
+  const arbejdSet=new Set();
+  ['arbejd1','arbejd2','arbejd3'].forEach(id=>{
+    const v=document.getElementById(id).value;
+    if(v) arbejdSet.add(parseDate(v).toDateString());
+  });
+
+  const startYear=parseDate(startStr).getFullYear();
+  const fristDate=lastFridayOfMonth(startYear,fristMaaned);
+  const frist=`${fristDate.getDate()}.${fristDate.getMonth()+1}.${fristDate.getFullYear()}`;
+  const linje1=document.getElementById('rengo_linje1').value;
+  const linje2=document.getElementById('rengo_linje2').value;
+  const linje3=document.getElementById('rengo_linje3').value;
+  const linje4=document.getElementById('rengo_linje4').value;
+
+  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  const pw=297,ph=210,ml=12,mr=12,mt=14,mb=10;
+  const hdrH=26,stripeH=2;
+
+  drawHeader(doc,'Forældrerengøring',
+    `${d2s(weekends[0][0])} – ${d2s(weekends[weekends.length-1][1])}`,pw,ph);
+  drawFooter(doc,pw);
+
+  // Info block
+  const infoY=hdrH+stripeH+3, infoH=26;
+  setFill(doc,[240,247,238]); doc.rect(ml,infoY,pw-ml-mr,infoH,'F');
+  setStroke(doc,G_MID); doc.setLineWidth(0.4); doc.rect(ml,infoY,pw-ml-mr,infoH,'S');
+  setFill(doc,G_MID); doc.rect(ml,infoY,1.5,infoH,'F');
+  const tx=ml+4, gap=5.2;
+  let iy=infoY+5;
+  const rc1=hexToRgb('rengo_farve1'),rc2=hexToRgb('rengo_farve2'),rc3=hexToRgb('rengo_farve3'),rc4=hexToRgb('rengo_farve4');
+  setTextColor(doc,rc1); doc.setFont('Helvetica','bold'); doc.setFontSize(8);
+  doc.text(linje1,tx,iy); iy+=gap;
+  setTextColor(doc,rc2); doc.setFontSize(7.5);
+  doc.text(linje2,tx,iy); iy+=gap;
+  setTextColor(doc,rc3);
+  doc.text(linje3,tx,iy); iy+=gap;
+  setTextColor(doc,rc4); doc.setFont('Helvetica','normal'); doc.setFontSize(7.5);
+  doc.text(`Frist for selv at skrive sig på: ${frist}  ${linje4}`,tx,iy); iy+=gap-1;
+  doc.setFont('Helvetica','italic'); doc.setFontSize(7);
+  doc.text('(fristen gælder kun for de "gamle" forældre)',tx+2,iy);
+
+  // Table
+  const tableTopY=infoY+infoH+2;
+  const usableW=pw-ml-mr, usableH=ph-tableTopY-mb-6;
+  const nCols=4, colGap=4, colW=(usableW-colGap*(nCols-1))/nCols;
+  const dateW=28, nameW=colW-dateW;  // samme som fredagsskemaet
+  const n=weekends.length, rowsPerCol=Math.ceil(n/nCols);
+  const hdrRowH=6.5, yearSepH=4.5, maxSeps=2;
+  const rowH=(usableH-hdrRowH-maxSeps*yearSepH)/rowsPerCol;
+  const fixedColH=hdrRowH+rowsPerCol*rowH+maxSeps*yearSepH;
+  const G_ARBEJD_BG=[184,217,176];
+  const G_ARBEJD_LINE=[122,171,114];
+
+  for(let ci=0;ci<nCols;ci++){
+    const cx=ml+ci*(colW+colGap);
+    setFill(doc,G_DARK);
+    doc.rect(cx,tableTopY,dateW,hdrRowH,'F');
+    doc.rect(cx+dateW,tableTopY,nameW,hdrRowH,'F');
+    setTextColor(doc,WHITE);
+    doc.setFont('Helvetica','bold'); doc.setFontSize(7.5);
+    doc.text('Dato',cx+2,tableTopY+hdrRowH-2.2);
+    doc.text('Navn',cx+dateW+2,tableTopY+hdrRowH-2.2);
+
+    const fiStart=ci*rowsPerCol;
+    if(fiStart>=n) continue;
+    let curY=tableTopY+hdrRowH;
+    const firstYear=weekends[fiStart][0].getFullYear();
+    let midSepDrawn=false;
+    drawYearSep(doc,cx,curY,colW,String(firstYear),yearSepH);
+    curY+=yearSepH;
+
+    for(let ri=0;ri<rowsPerCol;ri++){
+      const fi=fiStart+ri;
+      const bg=ri%2===0?G_PALE:WHITE;
+      if(fi>=n){
+        setFill(doc,bg);
+        doc.rect(cx,curY,dateW,rowH,'F');
+        doc.rect(cx+dateW,curY,nameW,rowH,'F');
+        setStroke(doc,G_MID); doc.setLineWidth(0.3);
+        doc.rect(cx,curY,dateW,rowH,'S');
+        doc.rect(cx+dateW,curY,nameW,rowH,'S');
+        curY+=rowH; continue;
+      }
+      const [sat,sun]=weekends[fi];
+      if(sat.getFullYear()!==firstYear && !midSepDrawn){
+        drawYearSep(doc,cx,curY,colW,String(sat.getFullYear()),yearSepH);
+        curY+=yearSepH; midSepDrawn=true;
+      }
+      const isArb=arbejdSet.has(sat.toDateString());
+      setFill(doc,isArb?G_ARBEJD_BG:bg);
+      doc.rect(cx,curY,dateW,rowH,'F');
+      doc.rect(cx+dateW,curY,nameW,rowH,'F');
+      setTextColor(doc,TEXT_DARK); doc.setFont('Helvetica','normal'); doc.setFontSize(6.5);
+      doc.text(fmtWeekend(sat,sun),cx+2,curY+rowH/2+1.5);
+      if(isArb){
+        doc.setFont('Helvetica','bold'); doc.setFontSize(6);
+        setTextColor(doc,[45,84,41]);
+        const atw=doc.getTextWidth('Arbejdslørdag');
+        doc.text('Arbejdslørdag',cx+dateW+nameW-atw-2,curY+rowH/2+1.5);
+      }
+      setStroke(doc,isArb?G_ARBEJD_LINE:G_MID); doc.setLineWidth(0.3);
+      doc.rect(cx,curY,dateW,rowH,'S');
+      doc.rect(cx+dateW,curY,nameW,rowH,'S');
+      curY+=rowH;
+    }
+    if(!midSepDrawn){ setFill(doc,CREAM); doc.rect(cx,curY,colW,yearSepH,'F'); }
+    setStroke(doc,G_DARK); doc.setLineWidth(0.8);
+    doc.rect(cx,tableTopY,colW,fixedColH,'S');
+  }
+
+  // Legend – arbejdslørdag
+  const arbTxt='Arbejdslørdag';
+  doc.setFont('Helvetica','normal'); doc.setFontSize(6.5);
+  const arbTw=doc.getTextWidth(arbTxt);
+  const arbLx=pw-mr-arbTw-3.5-1.5, arbLy=ph-mb-3.5+1;
+  setFill(doc,G_ARBEJD_BG); doc.rect(arbLx,arbLy,3.5,3.5,'F');
+  setStroke(doc,G_ARBEJD_LINE); doc.setLineWidth(0.3); doc.rect(arbLx,arbLy,3.5,3.5,'S');
+  setTextColor(doc,TEXT_DARK);
+  doc.text(arbTxt,arbLx+5,arbLy+2.5);
+
+  doc.save('foraeldre_rengoering.pdf');
+  st.className='status ok'; st.textContent=`✓ PDF hentet!${arbejdSet.size>0?' ('+arbejdSet.size+' arbejdslørdag markeret)':''}`;
+}
+
+// ── Formatters ────────────────────────────────────────────────────────────────
+function d2s(d) { return `${d.getDate()}. ${MONTHS_FULL[d.getMonth()+1]} ${d.getFullYear()}`; }
+function d2sNoYear(d) { return `${d.getDate()}. ${MONTHS_FULL[d.getMonth()+1]}`; }
+
+
+function fmtWeekend(sat,sun) {
+  const w=isoWeek(sat);
+  let dates;
+  if(sat.getMonth()===sun.getMonth())
+    dates=`${sat.getDate()}.–${sun.getDate()}. ${MONTHS_ABB[sat.getMonth()+1]}`;
+  else
+    dates=`${sat.getDate()}. ${MONTHS_ABB[sat.getMonth()+1]}–${sun.getDate()}. ${MONTHS_ABB[sun.getMonth()+1]}`;
+  return `Uge ${w}  (${dates})`;
+}
+
+// ── Standardtekster ──────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('fred_linje1').value='2 FREDAGE PR. BARN PR. "FREDAGSFORÆLDREÅR", DVS FRA MAJ TIL OG MED APRIL.';
+  document.getElementById('fred_linje2').value='Det er dit ansvar at finde en erstatningsforælder, hvis den pågældende dag ikke passer!';
+  document.getElementById('fred_linje3').value='Husk at skrive ændringerne på skemaet!';
+  document.getElementById('fred_linje4').value='– herefter sætter bestyrelsen de resterende forældre på.';
+  document.getElementById('rengo_linje1').value='1 weekend pr. barn pr. "forældrerengøringsår" dvs. fra maj til maj';
+  document.getElementById('rengo_linje2').value='FORÆLDREMAPPEN STÅR I VINDUET I GARDEROBEN. HER FINDER DU ARBEJDSOPGAVERNE.';
+  document.getElementById('rengo_linje3').value='SPØRG GERNE PERSONALET. Fordel gerne lidt ud over "forældrerengøringsåret"';
+  document.getElementById('rengo_linje4').value='– herefter sætter bestyrelsen resterende forældre på.';
+});
+</script>
+</body>
+</html>
