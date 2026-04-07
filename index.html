@@ -445,7 +445,7 @@ function genFredager() {
   const fristMaanedFred=parseInt(document.getElementById('fred_frist_maaned').value);
   const startYearFred=parseDate(startStr).getFullYear();
   const fristDateFred=lastFridayOfMonth(startYearFred,fristMaanedFred);
-  const fristFred=`${fristDateFred.getDate()}.${fristDateFred.getMonth()+1}.${fristDateFred.getFullYear()}`;
+  const fristFred=`${String(fristDateFred.getDate()).padStart(2,'0')}/${String(fristDateFred.getMonth()+1).padStart(2,'0')}/${fristDateFred.getFullYear()}`;
 
   const infoY=hdrH+stripeH+3, infoH=27, infoX=ml, lineGapF=5.2;
   setFill(doc,[240,247,238]); doc.rect(infoX,infoY,pw-ml-mr,infoH,'F');
@@ -596,7 +596,7 @@ function genRengoering() {
 
   const startYear=parseDate(startStr).getFullYear();
   const fristDate=lastFridayOfMonth(startYear,fristMaaned);
-  const frist=`${fristDate.getDate()}.${fristDate.getMonth()+1}.${fristDate.getFullYear()}`;
+  const frist=`${String(fristDate.getDate()).padStart(2,'0')}/${String(fristDate.getMonth()+1).padStart(2,'0')}/${fristDate.getFullYear()}`;
   const linje1=document.getElementById('rengo_linje1').value;
   const linje2=document.getElementById('rengo_linje2').value;
   const linje3=document.getElementById('rengo_linje3').value;
@@ -713,17 +713,19 @@ function genRengoering() {
 }
 
 // ── Formatters ────────────────────────────────────────────────────────────────
-function d2s(d) { return `${d.getDate()}. ${MONTHS_FULL[d.getMonth()+1]} ${d.getFullYear()}`; }
-function d2sNoYear(d) { return `${d.getDate()}. ${MONTHS_FULL[d.getMonth()+1]}`; }
+function d2s(d) { return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
+function d2sNoYear(d) { return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`; }
 
 
 function fmtWeekend(sat,sun) {
   const w=isoWeek(sat);
+  const sd=String(sat.getDate()).padStart(2,'0'), sm=String(sat.getMonth()+1).padStart(2,'0');
+  const ed=String(sun.getDate()).padStart(2,'0'), em=String(sun.getMonth()+1).padStart(2,'0');
   let dates;
   if(sat.getMonth()===sun.getMonth())
-    dates=`${sat.getDate()}.–${sun.getDate()}. ${MONTHS_ABB[sat.getMonth()+1]}`;
+    dates=`${sd}/${sm}–${ed}/${em}`;
   else
-    dates=`${sat.getDate()}. ${MONTHS_ABB[sat.getMonth()+1]}–${sun.getDate()}. ${MONTHS_ABB[sun.getMonth()+1]}`;
+    dates=`${sd}/${sm}–${ed}/${em}`;
   return `Uge ${w}  (${dates})`;
 }
 
