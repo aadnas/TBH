@@ -391,7 +391,19 @@ function drawHatch(doc,x,y,w,h) {
   }
   doc.restoreGraphicsState();
 }
+// ── Formatters ────────────────────────────────────────────────────────────────
+function d2s(d) { return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
+function d2sNoYear(d) { return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`; }
 
+
+function fmtWeekend(sat,sun) {
+  const w=isoWeek(sat);
+  const sd=String(sat.getDate()).padStart(2,'0'), sm=String(sat.getMonth()+1).padStart(2,'0');
+  const ed=String(sun.getDate()).padStart(2,'0'), em=String(sun.getMonth()+1).padStart(2,'0');
+  let dates;
+      dates=`${sd}/${sm}–${ed}/${em}`;
+  return `Uge ${w}  (${dates})`;
+}
 // ── FREDAGSFORÆLDER ───────────────────────────────────────────────────────────
 function genFredager() {
   const startStr=document.getElementById('fred_start').value;
@@ -712,22 +724,6 @@ function genRengoering() {
   st.className='status ok'; st.textContent=`✓ PDF hentet!${arbejdSet.size>0?' ('+arbejdSet.size+' arbejdslørdag markeret)':''}`;
 }
 
-// ── Formatters ────────────────────────────────────────────────────────────────
-function d2s(d) { return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
-function d2sNoYear(d) { return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`; }
-
-
-function fmtWeekend(sat,sun) {
-  const w=isoWeek(sat);
-  const sd=String(sat.getDate()).padStart(2,'0'), sm=String(sat.getMonth()+1).padStart(2,'0');
-  const ed=String(sun.getDate()).padStart(2,'0'), em=String(sun.getMonth()+1).padStart(2,'0');
-  let dates;
-  if(sat.getMonth()===sun.getMonth())
-    dates=`${sd}/${sm}–${ed}/${em}`;
-  else
-    dates=`${sd}/${sm}–${ed}/${em}`;
-  return `Uge ${w}  (${dates})`;
-}
 
 // ── Standardtekster ──────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',function(){
