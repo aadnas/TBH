@@ -147,12 +147,12 @@
     <div class="field-row">
       <div class="field">
         <label>Startdato</label>
-        <input type="date" id="fred_start" value="2026-05-01">
+        <input type="date" id="fred_start">
         <p class="hint">Første dag i perioden (første fredag på eller efter denne dato)</p>
       </div>
       <div class="field">
         <label>Slutdato</label>
-        <input type="date" id="fred_end" value="2027-04-30">
+        <input type="date" id="fred_end">
       </div>
     </div>
     <div class="field" style="margin-bottom:14px">
@@ -212,12 +212,12 @@
     <div class="field-row">
       <div class="field">
         <label>Startdato</label>
-        <input type="date" id="rengo_start" value="2026-05-01">
+        <input type="date" id="rengo_start">
         <p class="hint">Første dag i perioden (første lørdag på eller efter denne dato)</p>
       </div>
       <div class="field">
         <label>Slutdato</label>
-        <input type="date" id="rengo_end" value="2027-04-30">
+        <input type="date" id="rengo_end">
       </div>
     </div>
     <div class="field" style="margin-bottom:14px">
@@ -391,19 +391,7 @@ function drawHatch(doc,x,y,w,h) {
   }
   doc.restoreGraphicsState();
 }
-// ── Formatters ────────────────────────────────────────────────────────────────
-function d2s(d) { return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
-function d2sNoYear(d) { return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`; }
 
-
-function fmtWeekend(sat,sun) {
-  const w=isoWeek(sat);
-  const sd=String(sat.getDate()).padStart(2,'0'), sm=String(sat.getMonth()+1).padStart(2,'0');
-  const ed=String(sun.getDate()).padStart(2,'0'), em=String(sun.getMonth()+1).padStart(2,'0');
-  let dates;
-      dates=`${sd}/${sm}–${ed}/${em}`;
-  return `Uge ${w}  (${dates})`;
-}
 // ── FREDAGSFORÆLDER ───────────────────────────────────────────────────────────
 function genFredager() {
   const startStr=document.getElementById('fred_start').value;
@@ -724,9 +712,34 @@ function genRengoering() {
   st.className='status ok'; st.textContent=`✓ PDF hentet!${arbejdSet.size>0?' ('+arbejdSet.size+' arbejdslørdag markeret)':''}`;
 }
 
+// ── Formatters ────────────────────────────────────────────────────────────────
+function d2s(d) { return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
+function d2sNoYear(d) { return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`; }
+
+
+function fmtWeekend(sat,sun) {
+  const w=isoWeek(sat);
+  const sd=String(sat.getDate()).padStart(2,'0'), sm=String(sat.getMonth()+1).padStart(2,'0');
+  const ed=String(sun.getDate()).padStart(2,'0'), em=String(sun.getMonth()+1).padStart(2,'0');
+  let dates;
+  if(sat.getMonth()===sun.getMonth())
+    dates=`${sd}/${sm}–${ed}/${em}`;
+  else
+    dates=`${sd}/${sm}–${ed}/${em}`;
+  return `Uge ${w}  (${dates})`;
+}
 
 // ── Standardtekster ──────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',function(){
+  const now=new Date();
+  const periodStartYear=now.getFullYear();
+  const periodEndYear=periodStartYear+1;
+  const fmt=y=>y+'-05-01';
+  const fmtEnd=y=>y+'-04-30';
+  document.getElementById('fred_start').value=fmt(periodStartYear);
+  document.getElementById('fred_end').value=fmtEnd(periodEndYear);
+  document.getElementById('rengo_start').value=fmt(periodStartYear);
+  document.getElementById('rengo_end').value=fmtEnd(periodEndYear);
   document.getElementById('fred_linje1').value='2 FREDAGE PR. BARN PR. "FREDAGSFORÆLDREÅR", DVS FRA MAJ TIL OG MED APRIL.';
   document.getElementById('fred_linje2').value='Det er dit ansvar at finde en erstatningsforælder, hvis den pågældende dag ikke passer!';
   document.getElementById('fred_linje3').value='Husk at skrive ændringerne på skemaet!';
