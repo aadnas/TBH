@@ -342,13 +342,17 @@ function hexToRgb(id) {
 }
 
 async function loadLogo() {
-  const resp = await fetch(LOGO_URL);
-  const blob = await resp.blob();
-  return new Promise(res => {
-    const r = new FileReader();
-    r.onload = () => res(r.result);
-    r.readAsDataURL(blob);
-  });
+  try {
+    const resp = await fetch(LOGO_URL);
+    if (!resp.ok) throw new Error();
+    const blob = await resp.blob();
+    return new Promise(res => {
+      const r = new FileReader();
+      r.onload = () => res(r.result);
+      r.onerror = () => res(null);
+      r.readAsDataURL(blob);
+    });
+  } catch { return null; }
 }
 // ── Draw helpers ─────────────────────────────────────────────────────────────
 function setFill(doc,rgb)   { doc.setFillColor(rgb[0],rgb[1],rgb[2]); }
@@ -362,7 +366,7 @@ async function drawHeader(doc, title, subtitle, pw, ph) {
   // Logo embedded as base64
   const lx=12,ly=4,lh=18,lw=lh*(726/172);
   const logoData = await loadLogo();
-  doc.addImage(logoData, 'PNG', lx, ly, lw, lh);
+  if (logoData) doc.addImage(logoData, 'PNG', lx, ly, lw, lh);
   // Logo: ly=4, lh=18 → center=13, cap-height ca 13mm → baseline ≈ 15
   // Titel samme visuelle størrelse som logo
   const tx=lx+lw+6;
@@ -494,7 +498,7 @@ async function genFredager() {
   const colGap=4, colW=(usableW-colGap*(nCols-1))/nCols;
   const dateW=28, nameW=colW-dateW;  // smalere dato, bredere navn
   const hdrRowH=6.5, yearSepH=5, maxSeps=2;
-  const rowH=(usableH-hdrRowH-maxSeps*yearSepH)/maxColW;
+  const rowH=Math.max(4, (usableH-hdrRowH-maxSeps*yearSepH)/maxColW);
   const paedRowH=rowH*2;
   const topY=tableTopY;
   const G_PAED_BG=[230,242,255];
@@ -647,7 +651,7 @@ async function genRengoering() {
   const dateW=28, nameW=colW-dateW;  // samme som fredagsskemaet
   const n=weekends.length, rowsPerCol=Math.ceil(n/nCols);
   const hdrRowH=6.5, yearSepH=4.5, maxSeps=2;
-  const rowH=(usableH-hdrRowH-maxSeps*yearSepH)/rowsPerCol;
+  const rowH=Math.max(4, (usableH-hdrRowH-maxSeps*yearSepH)/rowsPerCol);
   const fixedColH=hdrRowH+rowsPerCol*rowH+maxSeps*yearSepH;
   const G_ARBEJD_BG=[184,217,176];
   const G_ARBEJD_LINE=[122,171,114];
@@ -733,10 +737,7 @@ function fmtWeekend(sat,sun) {
   const sd=String(sat.getDate()).padStart(2,'0'), sm=String(sat.getMonth()+1).padStart(2,'0');
   const ed=String(sun.getDate()).padStart(2,'0'), em=String(sun.getMonth()+1).padStart(2,'0');
   let dates;
-  if(sat.getMonth()===sun.getMonth())
-    dates=`${sd}/${sm}–${ed}/${em}`;
-  else
-    dates=`${sd}/${sm}–${ed}/${em}`;
+  dates=`${sd}/${sm}–${ed}/${em}`;
   return `Uge ${w}  (${dates})`;
 }
 
