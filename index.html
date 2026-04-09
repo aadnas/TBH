@@ -355,7 +355,7 @@ function setFill(doc,rgb)   { doc.setFillColor(rgb[0],rgb[1],rgb[2]); }
 function setStroke(doc,rgb) { doc.setDrawColor(rgb[0],rgb[1],rgb[2]); }
 function setTextColor(doc,rgb){ doc.setTextColor(rgb[0],rgb[1],rgb[2]); }
 
-function drawHeader(doc, title, subtitle, pw, ph) {
+async function drawHeader(doc, title, subtitle, pw, ph) {
   const hh=26, stripe=2;
   setFill(doc,G_DARK); doc.rect(0,0,pw,hh,'F');
   setFill(doc,G_MID);  doc.rect(0,hh,pw,stripe,'F');
