@@ -448,7 +448,7 @@ async function genFredager() {
   const pw=297,ph=210,ml=12,mr=12,mt=14,mb=10;
   const hdrH=26,stripeH=2;
 
-  drawHeader(doc,'Fredagsforælder',
+  await drawHeader(doc,'Fredagsforælder',
     `${d2s(fridays[0])} – ${d2s(fridays[fridays.length-1])}`,pw,ph);
   drawFooter(doc,pw);
 
@@ -617,7 +617,7 @@ async function genRengoering() {
   const pw=297,ph=210,ml=12,mr=12,mt=14,mb=10;
   const hdrH=26,stripeH=2;
 
-  drawHeader(doc,'Forældrerengøring',
+  await drawHeader(doc,'Forældrerengøring',
     `${d2s(weekends[0][0])} – ${d2s(weekends[weekends.length-1][1])}`,pw,ph);
   drawFooter(doc,pw);
 
