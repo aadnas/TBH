@@ -336,6 +336,7 @@ function getClosedDates(years) {
     const wh=addDays(e,49);  s.add(wh.toDateString());  s.add(addDays(wh,1).toDateString());
     s.add(new Date(year,0,1).toDateString());
     [24,25,26,27,28,29,30,31].forEach(d=>s.add(new Date(year,11,d).toDateString()));
+    s.add(new Date(year,5,5).toDateString());
   });
   return s;
 }
