@@ -233,7 +233,7 @@
       <p class="hint">Fristen sættes automatisk til den sidste fredag i denne måned i startåret</p>
     </div>
     <div class="field" style="margin-top:6px;margin-bottom:14px">
-      <label>Arbejdslørdage (op til 3 datoer)</label>
+      <label>Arbejdslørdage (op til 4 datoer)</label>
       <p class="hint">Disse weekender fremhæves i grønt med teksten "Arbejdslørdag"</p>
       <div class="field-row" style="margin-top:8px;margin-bottom:0">
         <div class="field"><input type="date" id="arbejd1"></div>
@@ -241,7 +241,7 @@
       </div>
       <div class="field-row" style="margin-bottom:0">
         <div class="field"><input type="date" id="arbejd3"></div>
-        <div class="field"></div>
+        <div class="field"><input type="date" id="arbejd4"></div>
       </div>
     </div>
     <div class="field" style="margin-bottom:14px">
@@ -616,7 +616,7 @@ async function genRengoering() {
 
   // Collect arbejdslørdage
   const arbejdSet=new Set();
-  ['arbejd1','arbejd2','arbejd3'].forEach(id=>{
+  ['arbejd1','arbejd2','arbejd3','arbejd4'].forEach(id=>{
     const v=document.getElementById(id).value;
     if(v) arbejdSet.add(parseDate(v).toDateString());
   });
